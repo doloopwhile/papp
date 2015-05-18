@@ -1,0 +1,13 @@
+<html>
+<body>
+<h1>login</h1>
+{{range .Flashes}}
+  <div>{{.}}</div>
+{{end}}
+<form action="/register" method="POST">
+  <p><input type="text" name="user_name" />
+  <p><input type="password" name="password" />
+  <p><input type="submit" />
+</form>
+</body>
+</html>

@@ -30,6 +30,7 @@ var (
 func init() {
 	gob.Register(User{})
 }
+
 func logout(w http.ResponseWriter, r *http.Request) {
 	session := sessions.GetSession(r)
 	session.Set("User", nil)
@@ -76,6 +77,42 @@ func registerPost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+func login(w http.ResponseWriter, r *http.Request) {
+	session := sessions.GetSession(r)
+
+	data := map[string]interface{}{
+		"User":    session.Get("User"),
+		"Flashes": session.Flashes("auth"),
+	}
+	err := tmpl.ExecuteTemplate(w, "login.tmpl", data)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func loginPost(w http.ResponseWriter, r *http.Request) {
+	session := sessions.GetSession(r)
+
+	r.ParseForm()
+	name, password := r.FormValue("user_name"), r.FormValue("password")
+
+	var loginUser *User
+	for _, user := range users {
+		if user.Name == name && bcrypt.Match(password, user.HashedPassword) {
+			loginUser = user
+			break
+		}
+	}
+	if loginUser == nil {
+		session.AddFlash("user is already registered", "auth")
+		login(w, r)
+		return
+	}
+
+	session.Set("User", loginUser)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
 func index(w http.ResponseWriter, r *http.Request) {
 	session := sessions.GetSession(r)
 
@@ -97,6 +134,8 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", index).Methods("GET")
 	r.HandleFunc("/logout", logout).Methods("GET")
+	r.HandleFunc("/login", login).Methods("GET")
+	r.HandleFunc("/login", loginPost).Methods("POST")
 	r.HandleFunc("/register", register).Methods("GET")
 	r.HandleFunc("/register", registerPost).Methods("POST")
 	n.UseHandler(r)
