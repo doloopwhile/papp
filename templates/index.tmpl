@@ -3,10 +3,10 @@
 </head>
 <body>
   {{if .User}}
-    <div>Hello, {{ .User.Email}}</div>
+    <div>Hello, {{ .User.Name}}</div>
     <div><a href="/logout">Logout</a></div>
   {{else}}
-    <div><a href="/signin">Sign In</a></div>
+    <div><a href="/login">Sign In</a></div>
     <div><a href="/register">Sign Up</a></div>
   {{end}}
 </body>
